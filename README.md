@@ -101,3 +101,30 @@ The whole framework is based on [MAE](https://github.com/facebookresearch/mae), 
 
 ## Contact
 Yiwen Ye (ywye@mail.nwpu.edu.cn)
+
+## Custom Recurrence MRI Dataset
+To run binary recurrence classification with paired T1/T2 MR volumes and ROIs, place the data as follows:
+
+```
+root_folder/
+    train/ID_xxx/{t1_image.nii.gz,t1_roi.nii.gz,t2_image.nii.gz,t2_roi.nii.gz}
+    val/ID_xxx/{...}
+    test/ID_xxx/{...}
+    CC_end.xlsx
+```
+`CC_end.xlsx` must contain two columns: `SampleID` matching the folder names and `Recurrence` (0/1 label).
+
+Use the provided script `Downstream/Dim_3/RecurrenceMRI/main.py` with `dataloader/Recurrence_MRI_dataset.py`:
+
+```bash
+python Downstream/Dim_3/RecurrenceMRI/main.py \
+    --data_root /path/to/root_folder \
+    --snapshot_dir snapshots/recurrence/ \
+    --input_size 8,64,64 \
+    --batch_size 2 \
+    --num_epochs 50 \
+    --reload_from_pretrained --pretrained_path /path/to/pretrained_weight.pth
+```
+
+The script will save the best checkpoint in `--snapshot_dir` based on validation AUC. Each epoch prints accuracy, AUC, sensitivity and specificity on the validation set.
+Class imbalance is mitigated using a weighted sampler and class-weighted loss so that both recurrence and non-recurrence cases contribute equally during training.
